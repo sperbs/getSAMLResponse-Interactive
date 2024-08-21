@@ -45,8 +45,7 @@ namespace getSAMLResponse
         {
             await webView.EnsureCoreWebView2Async(null);
             string filter = "*auth/saml*";
-            webView.CoreWebView2.AddWebResourceRequestedFilter(filter,
-                CoreWebView2WebResourceContext.Document);
+            webView.CoreWebView2.AddWebResourceRequestedFilter(filter, CoreWebView2WebResourceContext.Document);
             webView.CoreWebView2.WebResourceRequested += CoreWebView2_WebResourceRequested;
         }
 
