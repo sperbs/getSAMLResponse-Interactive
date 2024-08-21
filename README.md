@@ -1,5 +1,7 @@
 # getSAMLInteractive
 
+Fork of allynl93/getSAMLResponse-Interactive with an updated version of webView2 (1.0.2651.64.).
+
 A set of tools which will allow you to interactively authenticate with a SAML IDP, even if MFA is enabled, and retrieve the SAML Response. SAML Response can then be passed to another app or module for authenticating user. 
 
 Initially created for psPAS CyberArk module, providing a secure and user-friendly way to authenticate to the CyberArk REST API.
