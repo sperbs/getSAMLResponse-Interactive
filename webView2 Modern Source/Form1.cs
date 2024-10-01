@@ -14,6 +14,7 @@ namespace getSAMLResponse
         {
             InitializeComponent();
             webView.CoreWebView2InitializationCompleted += WebView_CoreWebView2InitializationCompleted;
+            webView.NavigationStarting += EnsureNoRedirect;
             InitializeAsync();
         }
 
@@ -40,7 +41,18 @@ namespace getSAMLResponse
                 throw new InvalidOperationException("No URL Passed. Must pass an IDP URL into app to start SAML Authentication process.");
             }
         }
-        //wait for a specific URL to be true based on the filter. In CyberArk example, there is a post to either api/auth/saml/logon or /auth/saml, both should match successfully.
+
+        //Ensure redirection to SP does not happen. In CyberArk example, redirection usually goes to PasswordVault/v10.
+        void EnsureNoRedirect(object sender, CoreWebView2NavigationStartingEventArgs args)
+        {
+            String uri = args.Uri;
+            if (uri.EndsWith("PasswordVault/v10"))
+            {
+                args.Cancel = true;
+            }
+        }
+
+        //Wait for a specific URL to be true based on the filter. In CyberArk example, there is a post to either api/auth/saml/logon or /auth/saml, both should match successfully.
         async void InitializeAsync()
         {
             await webView.EnsureCoreWebView2Async(null);
@@ -63,7 +75,6 @@ namespace getSAMLResponse
                     postData = Encoding.UTF8.GetString(ms.ToArray());
                     postData = HttpUtility.HtmlDecode(postData);
                 }
-                webView.NavigationStarting += StopNavigation;
                 string decodedSAML = HttpUtility.UrlDecode(postData);
                 int indexOfPostData = decodedSAML.IndexOf("&RelayState");
                 if (indexOfPostData >= 0)
@@ -72,8 +83,8 @@ namespace getSAMLResponse
 
                 if (decodedSAML != null)
                 {
-                    string regexPatern = @"(?<=SAMLResponse=)(?s)(.*)";
-                    Match m = Regex.Match(decodedSAML, regexPatern, RegexOptions.IgnoreCase);
+                    string regexPattern = @"(?<=SAMLResponse=)([^&]+)";
+                    Match m = Regex.Match(decodedSAML, regexPattern, RegexOptions.IgnoreCase);
                     if (m.Success)
                     {
                         Console.Out.WriteLine(m.Value);
@@ -91,12 +102,6 @@ namespace getSAMLResponse
                 throw new InvalidOperationException("Unable to find SAML Response content");
             }
 
-        }
-
-        //Stop webview from continuing navigation.
-        void StopNavigation(object sender, CoreWebView2NavigationStartingEventArgs args)
-        {
-            args.Cancel = true;
         }
 
         private void Form1_Load(object sender, EventArgs e)
